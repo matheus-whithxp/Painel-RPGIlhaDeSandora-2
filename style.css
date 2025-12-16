@@ -1,0 +1,99 @@
+@font-face {
+  font-family: "Heartless";
+  src: url("fonts/Heartless.ttf");
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #1b1b1b;
+  font-family: "Heartless", serif;
+  color: white;
+}
+
+.painel {
+  width: 90%;
+  max-width: 1200px;
+  margin: 40px auto;
+}
+
+.bloco { margin-bottom: 60px; }
+
+.titulo { font-size: 42px; margin-bottom: 10px; }
+
+.separador-titulo { height: 32px; vertical-align: middle; margin: 0 10px; }
+
+.linha { display: flex; align-items: center; gap: 20px; }
+
+.barra-externa {
+  position: relative;
+  flex: 1;
+  height: 60px;
+  background: #111;
+  border: 3px solid #000;
+  overflow: hidden;
+}
+
+.barra-interna {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  transition: width 0.3s ease;
+}
+
+.barra-interna.vida { background: #9b1c1c; }
+.barra-interna.sanidade { background: #3c458b; }
+
+.barra-texto {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 32px;
+  z-index: 2;
+}
+
+/* input que mostra o máximo — estilizado para parecer texto */
+.valor-max {
+  width: 90px;
+  background: transparent;
+  border: none;
+  color: white;
+  font-family: "Heartless";
+  font-size: 32px;
+  text-align: center;
+  outline: none;
+}
+
+/* quando o usuário foca no input, deixa um leve indicador */
+.valor-max:focus {
+  outline: 1px dashed rgba(255,255,255,0.2);
+  border-radius: 4px;
+}
+
+.separador { height: 34px; }
+
+.controles { display: flex; gap: 12px; }
+
+.controles button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 48px;
+  cursor: pointer;
+}
+
+.controles button:hover { opacity: 0.8; }
+
+@media (max-width: 768px) {
+  .barra-externa { height: 55px; }
+  .barra-texto { font-size: 26px; }
+  .valor-max { font-size: 26px; width: 72px; }
+  .titulo { font-size: 30px; }
+  .separador { height: 28px; }
+}
