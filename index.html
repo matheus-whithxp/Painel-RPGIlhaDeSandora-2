@@ -1,65 +1,84 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Painel RPG</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="painel">
+  <header class="top">
+    <img src="Logo_Ilha_de_Sandora.png" alt="Logo" class="logo" />
+  </header>
 
-  <!-- VIDA -->
-  <div class="bloco">
-    <div class="titulo">VIDA</div>
+  <main class="painel">
 
-    <div class="linha">
-      <div class="barra-externa">
+    <section class="ficha-top">
+      <div class="label-nome">
+        <div class="label">NOME</div>
+        <img src="dois_pontos.png" class="dois-pontos" alt=":"/>
+        <div id="nome-edit" class="nome-edit" contenteditable="true" aria-label="Nome do personagem">TEXTO TAMANHO EXEMPLO NOME</div>
+      </div>
+    </section>
 
-        <div class="barra-interna vida" id="vida-barra"></div>
+    <!-- BARRAS -->
+    <section class="barras">
+      <!-- VIDA -->
+      <div class="bloco">
+        <div class="titulo vida-titulo">VIDA</div>
 
-        <div class="barra-texto">
-          <span id="vida-atual">100</span>
-          <img src="assets/separador.png" class="separador" alt="/">
-          <input id="vida-max-input" class="valor-max" type="number" min="1" step="1" value="100" />
+        <div class="linha">
+          <div class="barra-externa">
+            <div class="barra-interna vida" id="vida-barra"></div>
+
+            <div class="barra-texto">
+              <span id="vida-atual">100</span>
+              <img src="separador.png" class="separador" alt="/">
+              <input id="vida-max-input" class="valor-max" type="number" min="1" value="100">
+            </div>
+          </div>
+
+          <div class="controles">
+            <button id="vida-menos" class="btn">−</button>
+            <button id="vida-mais" class="btn">+</button>
+          </div>
         </div>
-
       </div>
 
-      <div class="controles">
-        <button id="vida-menos">−</button>
-        <button id="vida-mais">+</button>
-      </div>
-    </div>
-  </div>
+      <!-- SANIDADE -->
+      <div class="bloco">
+        <div class="titulo sanidade-titulo">PD <img src="separador.png" class="separador-titulo" alt="/"> SANIDADE</div>
 
-  <!-- SANIDADE -->
-  <div class="bloco">
-    <div class="titulo">
-      PD <img src="assets/separador.png" class="separador-titulo" alt="/"> SANIDADE
-    </div>
+        <div class="linha">
+          <div class="barra-externa">
+            <div class="barra-interna sanidade" id="sanidade-barra"></div>
 
-    <div class="linha">
-      <div class="barra-externa">
+            <div class="barra-texto">
+              <span id="sanidade-atual">100</span>
+              <img src="separador.png" class="separador" alt="/">
+              <input id="sanidade-max-input" class="valor-max" type="number" min="1" value="100">
+            </div>
+          </div>
 
-        <div class="barra-interna sanidade" id="sanidade-barra"></div>
-
-        <div class="barra-texto">
-          <span id="sanidade-atual">100</span>
-          <img src="assets/separador.png" class="separador" alt="/">
-          <input id="sanidade-max-input" class="valor-max" type="number" min="1" step="1" value="100" />
+          <div class="controles">
+            <button id="sanidade-menos" class="btn">−</button>
+            <button id="sanidade-mais" class="btn">+</button>
+          </div>
         </div>
-
       </div>
+    </section>
 
-      <div class="controles">
-        <button id="sanidade-menos">−</button>
-        <button id="sanidade-mais">+</button>
-      </div>
-    </div>
-  </div>
+    <!-- ITENS -->
+    <section class="itens-wrap">
+      <h2 class="itens-titulo">ITENS</h2>
 
-</div>
+      <ul class="itens-list" id="itens-list">
+        <!-- 12 linhas por padrão — editable -->
+      </ul>
+    </section>
+
+  </main>
 
 <script src="script.js"></script>
 </body>
