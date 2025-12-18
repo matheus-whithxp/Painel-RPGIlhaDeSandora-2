@@ -29,7 +29,7 @@ body {
 /* NOME */
 .ficha-top { margin: 20px 0 30px 0; display:flex; justify-content:flex-start; }
 .label-nome { display:flex; align-items:center; gap:14px; }
-.label { font-family:"Heartless"; font-size:34px; color:#0f0f0f; /* fake shadow look using image? kept dark per design */ opacity:0.95; letter-spacing:1px; }
+.label { font-family:"Heartless"; font-size:34px; color:#ffffff; /* cor alterada para branco */ opacity:0.95; letter-spacing:1px; }
 .dois-pontos { height:30px; }
 .nome-edit {
   min-width: 420px;
