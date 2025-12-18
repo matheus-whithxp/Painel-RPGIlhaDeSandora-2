@@ -119,8 +119,7 @@ body {
 /* ITENS */
 .itens-wrap { margin-top: 8px; padding-bottom: 6px; }
 .itens-titulo {
-  /* alterado para usar Heartless conforme solicitado */
-  font-family: "Heartless";
+  font-family: "Punktype";
   font-size: 30px;
   margin: 6px 0 10px 0;
   letter-spacing: 1px;
@@ -145,7 +144,6 @@ body {
   line-height:1.1;
   padding: 2px 0;
   caret-color:#fff;
-  /* não permitir quebra de linha via Enter — tratada no JS */
 }
 
 /* se for desktop, manter estilos anteriores (não alterei) */
