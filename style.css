@@ -13,54 +13,51 @@ body {
   font-family: "Punktype", serif;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
-  overflow: hidden; /* evita scroll na versão mobile compacta */
 }
 
 /* LOGO topo */
-.top { text-align:center; padding: 24px 0 6px 0; }
+.top { text-align:center; padding: 34px 0 8px 0; }
 .logo { max-width:520px; width:60%; height:auto; display:block; margin: 0 auto; }
 
 /* Painel principal - centralizado */
 .painel {
   width: 90%;
   max-width: 1100px;
-  margin: 6px auto 20px auto;
-  /* para mobile compact manter dentro do viewport */
-  min-height: calc(100vh - 90px);
+  margin: 8px auto 60px auto;
 }
 
 /* NOME */
-.ficha-top { margin: 8px 0 10px 0; display:flex; justify-content:flex-start; align-items:center; }
-.label-nome { display:flex; align-items:center; gap:10px; }
-.label { font-family:"Punktype"; font-size:30px; color:#0f0f0f; opacity:0.95; letter-spacing:1px; }
-.dois-pontos { height:26px; }
+.ficha-top { margin: 20px 0 30px 0; display:flex; justify-content:flex-start; }
+.label-nome { display:flex; align-items:center; gap:14px; }
+.label { font-family:"Punktype"; font-size:34px; color:#0f0f0f; /* fake shadow look using image? kept dark per design */ opacity:0.95; letter-spacing:1px; }
+.dois-pontos { height:30px; }
 .nome-edit {
-  min-width: 260px;
-  max-width: 520px;
+  min-width: 420px;
+  max-width: 820px;
   outline: none;
   border: none;
   background: transparent;
   color: #fff;
   font-family: "Heartless";
-  font-size: 28px;
-  padding: 4px 0;
+  font-size: 34px;
+  padding: 6px 0;
   caret-color: #fff;
 }
 
 /* BARRAS */
-.barras { margin-top: 6px; }
-.bloco { margin-bottom: 20px; }
+.barras { margin-top: 10px; }
+.bloco { margin-bottom: 50px; }
 
-.titulo { font-family:"Heartless"; font-size:36px; margin-bottom:8px; }
-.separador-titulo { height:28px; vertical-align:middle; margin: 0 8px; }
+.titulo { font-family:"Heartless"; font-size:44px; margin-bottom:10px; }
+.separador-titulo { height:32px; vertical-align:middle; margin: 0 10px; }
 
-.linha { display:flex; align-items:center; gap:12px; }
+.linha { display:flex; align-items:center; gap:20px; }
 
 /* barra externa */
 .barra-externa {
   position: relative;
   flex: 1;
-  height: 48px;
+  height: 60px;
   background: #111;
   border: 3px solid #000;
   overflow: hidden;
@@ -85,26 +82,26 @@ body {
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:10px;
-  font-size:22px;
+  gap:12px;
+  font-size:34px;
   z-index:2;
   font-family:"Heartless";
 }
 .valor-max {
-  width:86px;
+  width:110px;
   background:transparent;
   border:none;
   color:white;
   font-family:"Heartless";
-  font-size:20px;
+  font-size:32px;
   text-align:center;
 }
-.separador { height:26px; }
+.separador { height:36px; }
 
 /* controles (+ -) */
-.controles { display:flex; gap:18px; margin-left:10px; }
+.controles { display:flex; gap:12px; margin-left:14px; }
 .btn {
-  background:none; border:none; color:#fff; font-size:40px; cursor:pointer; padding:6px;
+  background:none; border:none; color:#fff; font-size:48px; cursor:pointer;
 }
 
 /* piscar crítico */
@@ -117,22 +114,23 @@ body {
 .separador-zerado { filter:grayscale(100%) brightness(0) contrast(100%); opacity:0.3; }
 
 /* ITENS */
-.itens-wrap { margin-top: 8px; padding-bottom: 6px; }
+.itens-wrap { margin-top: 40px; }
+/* ALTERAÇÃO SOLICITADA: título ITENS usa fonte Heartless */
 .itens-titulo {
-  font-family: "Punktype";
-  font-size: 30px;
-  margin: 6px 0 10px 0;
+  font-family: "Heartless";
+  font-size: 44px;
+  margin: 8px 0 18px 0;
   letter-spacing: 1px;
 }
 
 /* lista com bullets como imagem, texto editável ao lado */
 .itens-list { list-style: none; padding:0; margin:0; display:block; max-width: 100%; }
 .itens-list li {
-  display:flex; align-items:flex-start; gap:10px;
-  margin: 6px 0;
-  min-height: 22px;
+  display:flex; align-items:flex-start; gap:14px;
+  margin: 10px 0;
+  min-height: 28px;
 }
-.itens-list .bullet { width:16px; height:16px; display:block; margin-top:4px; }
+.itens-list .bullet { width:18px; height:18px; display:block; margin-top:6px; }
 .item-text {
   flex:1;
   outline:none;
@@ -140,25 +138,24 @@ body {
   background:transparent;
   color:#fff;
   font-family:"Punktype";
-  font-size:18px;
-  line-height:1.1;
+  font-size:22px;
+  line-height:1.2;
   padding: 2px 0;
   caret-color:#fff;
 }
 
-/* se for desktop, manter estilos anteriores (não alterei) */
-@media (min-width: 769px) {
-  body { overflow:auto; } /* desktop volta a rolar normalmente */
-  /* restore larger sizes (desktop rules previously defined) */
-  .logo { max-width:520px; width:60%; }
-  .nome-edit { font-size:34px; min-width:420px; }
-  .titulo { font-size:44px; }
-  .barra-externa { height:60px; }
-  .barra-texto { font-size:34px; }
-  .valor-max { width:110px; font-size:32px; }
-  .separador { height:36px; }
-  .controles { gap:12px; }
+/* responsivo - mobile vertical (match imagem mobile) */
+@media (max-width: 768px) {
+  .logo { max-width:360px; width:72%; }
+  .painel { width: 94%; margin-top:6px; }
+  .label { font-size:26px; }
+  .nome-edit { font-size:28px; min-width:180px; max-width:360px; }
+  .titulo { font-size:36px; }
+  .barra-texto { font-size:28px; }
+  .valor-max { width:86px; font-size:26px; }
+  .separador { height:28px; }
+  .controles { gap:20px; }
   .btn { font-size:48px; }
-  .itens-titulo { font-size:44px; }
-  .item-text { font-size:22px; }
+  .itens-titulo { font-size:34px; }
+  .item-text { font-size:20px; }
 }
