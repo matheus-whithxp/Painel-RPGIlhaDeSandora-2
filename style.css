@@ -1,140 +1,166 @@
-@font-face {
-  font-family: "Heartless";
-  src: url("Heartless.ttf") format("truetype");
-}
+/* FONTS (na raiz) */
+@font-face { font-family: "Heartless"; src: url("Heartless.ttf") format("truetype"); font-display: block; }
+@font-face { font-family: "Punktype"; src: url("Punktype.ttf") format("truetype"); font-display: swap; }
 
-@font-face {
-  font-family: "Punktype";
-  src: url("Punktype.ttf") format("truetype");
-}
-
-/* base */
+/* RESET e base */
 * { box-sizing: border-box; }
-
+html,body { height:100%; }
 body {
   margin: 0;
-  background: #1b1b1b;
-  font-family: "Heartless", serif;
-  color: white;
+  background: #1b1b1b url("Mancha_Sangue_BG.png") top center no-repeat;
+  background-size: cover;
+  color: #fff;
+  font-family: "Punktype", serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow: hidden; /* evita scroll na versão mobile compacta */
 }
 
+/* LOGO topo */
+.top { text-align:center; padding: 24px 0 6px 0; }
+.logo { max-width:520px; width:60%; height:auto; display:block; margin: 0 auto; }
+
+/* Painel principal - centralizado */
 .painel {
   width: 90%;
-  max-width: 1200px;
-  margin: 30px auto;
+  max-width: 1100px;
+  margin: 6px auto 20px auto;
+  /* para mobile compact manter dentro do viewport */
+  min-height: calc(100vh - 90px);
 }
 
-.bloco { margin-bottom: 40px; }
-
-.titulo {
-  font-size: 42px;
-  margin-bottom: 10px;
+/* NOME */
+.ficha-top { margin: 8px 0 10px 0; display:flex; justify-content:flex-start; align-items:center; }
+.label-nome { display:flex; align-items:center; gap:10px; }
+.label { font-family:"Punktype"; font-size:30px; color:#0f0f0f; opacity:0.95; letter-spacing:1px; }
+.dois-pontos { height:26px; }
+.nome-edit {
+  min-width: 260px;
+  max-width: 520px;
+  outline: none;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: "Heartless";
+  font-size: 28px;
+  padding: 4px 0;
+  caret-color: #fff;
 }
 
-.separador-titulo {
-  height: 32px;
-  vertical-align: middle;
-  margin: 0 10px;
-}
+/* BARRAS */
+.barras { margin-top: 6px; }
+.bloco { margin-bottom: 20px; }
 
-.linha {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
+.titulo { font-family:"Heartless"; font-size:36px; margin-bottom:8px; }
+.separador-titulo { height:28px; vertical-align:middle; margin: 0 8px; }
 
-/* barras */
+.linha { display:flex; align-items:center; gap:12px; }
+
+/* barra externa */
 .barra-externa {
   position: relative;
   flex: 1;
-  height: 60px;
+  height: 48px;
   background: #111;
   border: 3px solid #000;
   overflow: hidden;
+  touch-action: none;
 }
 
+/* barra interna */
 .barra-interna {
   position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 0%;
-  transition: width 0.3s ease;
+  top:0; left:0;
+  height:100%;
+  width:100%;
+  transition: width 0.25s ease, opacity 0.15s linear;
 }
-
 .barra-interna.vida { background: #9b1c1c; }
 .barra-interna.sanidade { background: #3c458b; }
 
+/* texto sobre a barra */
 .barra-texto {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: 32px;
-  z-index: 2;
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-size:22px;
+  z-index:2;
+  font-family:"Heartless";
 }
-
 .valor-max {
-  width: 90px;
-  background: transparent;
-  border: none;
-  color: white;
-  font-family: "Heartless";
-  font-size: 32px;
-  text-align: center;
+  width:86px;
+  background:transparent;
+  border:none;
+  color:white;
+  font-family:"Heartless";
+  font-size:20px;
+  text-align:center;
+}
+.separador { height:26px; }
+
+/* controles (+ -) */
+.controles { display:flex; gap:18px; margin-left:10px; }
+.btn {
+  background:none; border:none; color:#fff; font-size:40px; cursor:pointer; padding:6px;
 }
 
-.separador { height: 34px; }
+/* piscar crítico */
+@keyframes piscar { 0%{opacity:1;} 50%{opacity:0.15;} 100%{opacity:1;} }
+.critico { animation: piscar 0.8s linear infinite; }
 
-.controles {
-  display: flex;
-  gap: 12px;
-}
-
-.controles button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 48px;
-  cursor: pointer;
-}
-
-/* crítico */
-@keyframes piscar {
-  0% { opacity: 1; }
-  50% { opacity: 0.15; }
-  100% { opacity: 1; }
-}
-
-.critico {
-  animation: piscar 0.8s linear infinite;
-}
-
-.zerado {
-  background: #000 !important;
-}
+/* zerado */
+.zerado { background:#000 !important; opacity:1 !important; }
+.texto-zerado { opacity:0.3; color:#000 !important; }
+.separador-zerado { filter:grayscale(100%) brightness(0) contrast(100%); opacity:0.3; }
 
 /* ITENS */
+.itens-wrap { margin-top: 8px; padding-bottom: 6px; }
 .itens-titulo {
+  /* alterado para usar Heartless conforme solicitado */
   font-family: "Heartless";
+  font-size: 30px;
+  margin: 6px 0 10px 0;
+  letter-spacing: 1px;
 }
 
-.itens-input {
-  font-family: "Punktype";
-  font-size: 22px;
-  min-height: 120px;
-  outline: none;
-  white-space: nowrap;
-  overflow: hidden;
+/* lista com bullets como imagem, texto editável ao lado */
+.itens-list { list-style: none; padding:0; margin:0; display:block; max-width: 100%; }
+.itens-list li {
+  display:flex; align-items:flex-start; gap:10px;
+  margin: 6px 0;
+  min-height: 22px;
+}
+.itens-list .bullet { width:16px; height:16px; display:block; margin-top:4px; }
+.item-text {
+  flex:1;
+  outline:none;
+  border:none;
+  background:transparent;
+  color:#fff;
+  font-family:"Punktype";
+  font-size:18px;
+  line-height:1.1;
+  padding: 2px 0;
+  caret-color:#fff;
+  /* não permitir quebra de linha via Enter — tratada no JS */
 }
 
-/* mobile */
-@media (max-width: 768px) {
-  .barra-externa { height: 52px; }
-  .barra-texto { font-size: 26px; }
-  .valor-max { font-size: 26px; width: 70px; }
-  .titulo { font-size: 30px; }
-  .itens-input { font-size: 18px; }
+/* se for desktop, manter estilos anteriores (não alterei) */
+@media (min-width: 769px) {
+  body { overflow:auto; } /* desktop volta a rolar normalmente */
+  /* restore larger sizes (desktop rules previously defined) */
+  .logo { max-width:520px; width:60%; }
+  .nome-edit { font-size:34px; min-width:420px; }
+  .titulo { font-size:44px; }
+  .barra-externa { height:60px; }
+  .barra-texto { font-size:34px; }
+  .valor-max { width:110px; font-size:32px; }
+  .separador { height:36px; }
+  .controles { gap:12px; }
+  .btn { font-size:48px; }
+  .itens-titulo { font-size:44px; }
+  .item-text { font-size:22px; }
 }
