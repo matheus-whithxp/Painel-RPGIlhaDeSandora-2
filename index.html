@@ -18,29 +18,23 @@
       <div class="label-nome">
         <div class="label">NOME</div>
         <img src="dois_pontos.png" class="dois-pontos" alt=":"/>
-        <div id="nome-edit" class="nome-edit" contenteditable="true" aria-label="Nome do personagem">TEXTO TAMANHO EXEMPLO NOME</div>
+        <div id="nome-edit" class="nome-edit" contenteditable="true"></div>
       </div>
     </section>
 
-    <!-- BARRAS -->
     <section class="barras">
       <!-- VIDA -->
       <div class="bloco">
-        <div class="titulo vida-titulo">VIDA</div>
-
+        <div class="titulo">VIDA</div>
         <div class="linha">
           <div class="barra-externa">
-
             <div class="barra-interna vida" id="vida-barra"></div>
-
             <div class="barra-texto">
               <span id="vida-atual">100</span>
-              <img src="separador.png" class="separador" alt="/">
+              <img src="separador.png" class="separador">
               <input id="vida-max-input" class="valor-max" type="number" min="1" value="100">
             </div>
-
           </div>
-
           <div class="controles">
             <button id="vida-menos" class="btn">−</button>
             <button id="vida-mais" class="btn">+</button>
@@ -50,21 +44,16 @@
 
       <!-- SANIDADE -->
       <div class="bloco">
-        <div class="titulo sanidade-titulo">PD <img src="dois_pontos.png" class="dois-pontos" alt="/"> SANIDADE</div>
-
+        <div class="titulo">PD : SANIDADE</div>
         <div class="linha">
           <div class="barra-externa">
-
             <div class="barra-interna sanidade" id="sanidade-barra"></div>
-
             <div class="barra-texto">
               <span id="sanidade-atual">100</span>
-              <img src="separador.png" class="separador" alt="/">
+              <img src="separador.png" class="separador">
               <input id="sanidade-max-input" class="valor-max" type="number" min="1" value="100">
             </div>
-
           </div>
-
           <div class="controles">
             <button id="sanidade-menos" class="btn">−</button>
             <button id="sanidade-mais" class="btn">+</button>
@@ -76,10 +65,7 @@
     <!-- ITENS -->
     <section class="itens-wrap">
       <h2 class="itens-titulo">ITENS</h2>
-
-      <ul class="itens-list" id="itens-list">
-        <!-- linhas criadas via JS -->
-      </ul>
+      <ul class="itens-list" id="itens-list"></ul>
     </section>
 
   </main>
