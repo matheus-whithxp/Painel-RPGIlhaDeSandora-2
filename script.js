@@ -339,7 +339,7 @@ function popularItens(arr) {
   itensListEl.innerHTML = "";
   const maxLinhas = Math.max(12, arr.length);
   for (let i=0;i<maxLinhas;i++) {
-    // agora sem texto de exemplo na primeira linha: usa string vazia por padrão
+    // agora sem texto de exemplo na itens: usa string vazia por padrão
     const raw = arr[i] ?? "";
     const texto = sanitizeTextForItem(raw);
     itensListEl.appendChild(criarLinhaItem(texto));
