@@ -159,7 +159,7 @@ function bindButton(el, id, tipo, delta) {
 }
 
 /* =========================
-   Drag/touch directly on barra (pointer events)
+   Drag/touch diretamente na barra (pointer events)
    mapa posição -> valor proporcional
 ========================= */
 function setupBarDrag(containerEl, tipo) {
@@ -227,12 +227,52 @@ function setupBarDrag(containerEl, tipo) {
 
 /* =========================
    ITEMS UI (contenteditable) - cria linhas e salva em localStorage
-   Regras implementadas:
+   Regras adicionadas:
    - máximo 50 caracteres por linha
-   - impede pular linha / Enter
-   - impede colar com quebras de linha (substitui por espaço) e limita a 50 chars
-   - inicial não preenche com texto exemplo (linhas vazias)
+   - impede quebras de linha (Enter / colar com \n)
+   - primeira linha não vem com texto de exemplo
 ========================= */
+const ITEM_CHAR_LIMIT = 50;
+
+function placeCaretAtEnd(el) {
+  el.focus();
+  if (typeof window.getSelection != "undefined" && typeof document.createRange != "undefined") {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
+function insertTextAtCursor(text) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) {
+    return;
+  }
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+  const textNode = document.createTextNode(text);
+  range.insertNode(textNode);
+
+  // move caret after inserted node
+  range.setStartAfter(textNode);
+  range.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function sanitizeTextForItem(raw) {
+  if (!raw) return "";
+  // remove line breaks, collapse multiple spaces, trim
+  let t = raw.toString().replace(/\r?\n/g, " ");
+  // normalize spaces
+  t = t.replace(/\s+/g, " ").trim();
+  if (t.length > ITEM_CHAR_LIMIT) t = t.slice(0, ITEM_CHAR_LIMIT);
+  return t;
+}
+
 function criarLinhaItem(text = "") {
   const li = document.createElement("li");
   const img = document.createElement("img");
@@ -243,66 +283,51 @@ function criarLinhaItem(text = "") {
   const div = document.createElement("div");
   div.className = "item-text";
   div.contentEditable = "true";
-  // aplica truncamento imediato se texto fornecido > 50
-  div.innerText = (text || "").slice(0, 50);
+  div.innerText = sanitizeTextForItem(text);
 
-  // helper para garantir regras
-  function enforceItemLimits() {
-    // remove quebras de linha
-    let txt = div.innerText.replace(/\r?\n/g, ' ');
-    if (txt.length > 50) txt = txt.slice(0, 50);
-    if (div.innerText !== txt) {
-      div.innerText = txt;
-      // mover caret para o fim
-      try {
-        const range = document.createRange();
-        range.selectNodeContents(div);
-        range.collapse(false);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } catch (e) {}
-    }
-  }
-
-  // evita Enter / quebra de linha
+  // evitar Enter (pular linha)
   div.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-    }
-  });
-  // previne inserção de line breaks via antes do input
-  div.addEventListener("beforeinput", (e) => {
-    if (e.inputType === "insertLineBreak") {
-      e.preventDefault();
+      return;
     }
   });
 
-  // colar: filtra quebras e limita tamanho
+  // controlar colagens (remove quebras e limita)
   div.addEventListener("paste", (e) => {
     e.preventDefault();
-    const pasted = (e.clipboardData || window.clipboardData).getData('text') || '';
-    let cleaned = pasted.replace(/\r?\n/g, ' ');
-    const allowed = Math.max(0, 50 - div.innerText.length);
-    cleaned = cleaned.slice(0, allowed);
-    // insere texto (execCommand usado por compat)
-    try {
-      document.execCommand('insertText', false, cleaned);
-    } catch (err) {
-      // fallback simples
-      div.innerText = (div.innerText + cleaned).slice(0, 50);
+    const paste = (e.clipboardData || window.clipboardData).getData('text') || "";
+    const clean = sanitizeTextForItem(paste);
+    // compute remaining space
+    const current = div.innerText || "";
+    const remaining = ITEM_CHAR_LIMIT - current.length;
+    const toInsert = clean.slice(0, Math.max(0, remaining));
+    if (toInsert.length > 0) {
+      insertTextAtCursor(toInsert);
     }
-    enforceItemLimits();
-    salvarEstadoDebounced();
+    // after insertion, ensure final sanitize & trim
+    setTimeout(() => {
+      const final = sanitizeTextForItem(div.innerText);
+      if (final !== div.innerText) {
+        div.innerText = final;
+        placeCaretAtEnd(div);
+      }
+      salvarEstadoDebounced();
+    }, 0);
   });
 
-  // input: aplica limite e salva debounced
+  // normal input: remover quebras e limitar comprimento
   div.addEventListener("input", () => {
-    enforceItemLimits();
+    const raw = div.innerText;
+    const clean = sanitizeTextForItem(raw);
+    if (clean !== raw) {
+      div.innerText = clean;
+      placeCaretAtEnd(div);
+    }
     salvarEstadoDebounced();
   });
 
-  // blur: salva imediatamente
+  // salvar também no blur (imediato)
   div.addEventListener("blur", salvarEstado);
 
   li.appendChild(img);
@@ -313,8 +338,10 @@ function criarLinhaItem(text = "") {
 function popularItens(arr) {
   itensListEl.innerHTML = "";
   const maxLinhas = Math.max(12, arr.length);
-  for (let i = 0; i < maxLinhas; i++) {
-    const texto = arr[i] ?? ""; // NÃO preencher com texto de exemplo — linhas vazias
+  for (let i=0;i<maxLinhas;i++) {
+    // agora sem texto de exemplo na primeira linha: usa string vazia por padrão
+    const raw = arr[i] ?? "";
+    const texto = sanitizeTextForItem(raw);
     itensListEl.appendChild(criarLinhaItem(texto));
   }
 }
@@ -329,7 +356,7 @@ function salvarEstadoDebounced() {
 }
 
 function salvarEstado() {
-  const itens = Array.from(itensListEl.querySelectorAll(".item-text")).map(d => d.innerText);
+  const itens = Array.from(itensListEl.querySelectorAll(".item-text")).map(d => sanitizeTextForItem(d.innerText));
   const estado = {
     vidaAtual: Number(vidaAtual),
     vidaMax: Number(toIntSafe(vidaMaxInput.value, 100)),
@@ -344,7 +371,7 @@ function salvarEstado() {
 function carregarEstado() {
   const salvo = localStorage.getItem("painelRPG");
   if (!salvo) {
-    // inicializa UI
+    // inicializa UI (sem texto de exemplo nos itens)
     atualizarBarraVisual(vidaAtual, toIntSafe(vidaMaxInput.value,100), vidaBarInner, vidaAtualSpan);
     atualizarBarraVisual(sanidadeAtual, toIntSafe(sanidadeMaxInput.value,100), sanidadeBarInner, sanidadeAtualSpan);
     popularItens([]);
@@ -357,7 +384,9 @@ function carregarEstado() {
     vidaMaxInput.value = Number(e.vidaMax ?? toIntSafe(vidaMaxInput.value,100));
     sanidadeMaxInput.value = Number(e.sanidadeMax ?? toIntSafe(sanidadeMaxInput.value,100));
     nomeEdit.innerText = e.nome ?? nomeEdit.innerText;
-    popularItens(e.itens ?? []);
+    // sanitize itens carregados (remove quebras e corta)
+    const itensSanitizados = (e.itens || []).map(i => sanitizeTextForItem(i));
+    popularItens(itensSanitizados);
     atualizarBarraVisual(vidaAtual, vidaMaxInput.value, vidaBarInner, vidaAtualSpan);
     atualizarBarraVisual(sanidadeAtual, sanidadeMaxInput.value, sanidadeBarInner, sanidadeAtualSpan);
   } catch (err) {
