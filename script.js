@@ -159,7 +159,7 @@ function bindButton(el, id, tipo, delta) {
 }
 
 /* =========================
-   Drag/touch diretamente na barra (pointer events)
+   Drag/touch directly on barra (pointer events)
    mapa posição -> valor proporcional
 ========================= */
 function setupBarDrag(containerEl, tipo) {
@@ -239,57 +239,8 @@ function criarLinhaItem(text = "") {
   div.className = "item-text";
   div.contentEditable = "true";
   div.innerText = text;
-
-  // impedir Enter / quebras de linha e limitar a 50 caracteres
-  div.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") e.preventDefault();
-  });
-  div.addEventListener("beforeinput", (e) => {
-    // bloqueia tentativa de inserir parágrafo (alguns browsers)
-    if (e.inputType === "insertParagraph") e.preventDefault();
-  });
-
-  div.addEventListener("input", () => {
-    // remove quebras de linha e limita a 50 chars
-    let txt = div.innerText.replace(/\r?\n/g, " ");
-    if (txt.length > 50) txt = txt.slice(0, 50);
-    if (txt !== div.innerText) {
-      div.innerText = txt;
-      // posiciona caret no fim
-      const range = document.createRange();
-      const sel = window.getSelection();
-      range.selectNodeContents(div);
-      range.collapse(false);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-    salvarEstadoDebounced();
-  });
-
-  div.addEventListener("paste", (e) => {
-    e.preventDefault();
-    const paste = (e.clipboardData || window.clipboardData).getData('text');
-    const cleaned = paste.replace(/\r?\n/g, ' ');
-    const available = Math.max(0, 50 - div.innerText.length);
-    const toInsert = cleaned.slice(0, available);
-    // insert text (fallback para navegadores)
-    try {
-      document.execCommand('insertText', false, toInsert);
-    } catch (err) {
-      // como fallback, concatena e corta
-      div.innerText = (div.innerText + toInsert).slice(0, 50);
-    }
-    // posiciona caret no fim
-    const range = document.createRange();
-    const sel = window.getSelection();
-    range.selectNodeContents(div);
-    range.collapse(false);
-    sel.removeAllRanges();
-    sel.addRange(range);
-
-    salvarEstadoDebounced();
-  });
-
+  // salvar no input
+  div.addEventListener("input", salvarEstadoDebounced);
   div.addEventListener("blur", salvarEstado);
 
   li.appendChild(img);
@@ -301,7 +252,7 @@ function popularItens(arr) {
   itensListEl.innerHTML = "";
   const maxLinhas = Math.max(12, arr.length);
   for (let i=0;i<maxLinhas;i++) {
-    const texto = arr[i] ?? ""; // linhas iniciam vazias conforme solicitado
+    const texto = arr[i] ?? (i===0 ? "TEXTO TAMANHO EXEMPLO DOS ITENS." : "");
     itensListEl.appendChild(criarLinhaItem(texto));
   }
 }
