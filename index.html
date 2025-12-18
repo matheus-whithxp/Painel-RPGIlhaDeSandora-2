@@ -3,27 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Painel RPG</title>
+  <title>Painel RPG — Desktop</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <header class="top">
+    <!-- logo grande centralizada conforme mockup -->
     <img src="Logo_Ilha_de_Sandora.png" alt="Logo" class="logo" />
   </header>
 
   <main class="painel">
 
+    <!-- NOME (rótulo em Heartless branco + dois_pontos_branco) -->
     <section class="ficha-top">
       <div class="label-nome">
         <div class="label">NOME</div>
-        <img src="dois_pontos.png" class="dois-pontos" alt=":"/>
+        <img src="dois_pontos_branco.png" class="dois-pontos" alt=":"/>
         <div id="nome-edit" class="nome-edit" contenteditable="true" aria-label="Nome do personagem"></div>
       </div>
     </section>
 
     <!-- BARRAS -->
     <section class="barras">
+
       <!-- VIDA -->
       <div class="bloco">
         <div class="titulo vida-titulo">VIDA</div>
@@ -74,7 +77,7 @@
       <h2 class="itens-titulo">ITENS</h2>
 
       <ul class="itens-list" id="itens-list">
-        <!-- 8 linhas por padrão — editable -->
+        <!-- 8 linhas por padrão — editable; preenchidas pelo script -->
       </ul>
     </section>
 
