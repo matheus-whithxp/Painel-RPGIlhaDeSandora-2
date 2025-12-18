@@ -133,7 +133,7 @@ function alterarValor(tipo, delta) {
 }
 
 /* =========================
-   HOLD (segurar) usando pointer events
+   HOLD (segurar) using pointer events
    inicia após 300ms, repete a cada 120ms
 ========================= */
 function startHold(id, tipo, delta) {
@@ -333,9 +333,7 @@ sanidadeMaxInput.addEventListener("input", () => {
 
 /* nome edit save */
 nomeEdit.addEventListener("input", salvarEstadoDebounced);
-nomeEdit.addEventListener("blur", salvarStateImmediate);
-
-function salvarStateImmediate() { salvarEstado(); }
+nomeEdit.addEventListener("blur", salvarEstado);
 
 /* carregar inicial */
 carregarEstado();
