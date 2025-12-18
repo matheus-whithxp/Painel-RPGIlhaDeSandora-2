@@ -161,9 +161,35 @@ function bindButton(el, id, tipo, delta) {
 /* =========================
    Drag/touch diretamente na barra (pointer events)
    mapa posição -> valor proporcional
+   + nova regra: ao SEGURAR a barra (hold >300ms) -> vibrar (sanidade/vida) e tocar som (apenas vida)
 ========================= */
 function setupBarDrag(containerEl, tipo) {
   let active = false, activeId = null;
+  let holdTimer = null;
+  let holdActive = false;
+
+  function startBarHold() {
+    // inicia timer para considerar "segurar" (300ms)
+    clearTimeout(holdTimer);
+    holdActive = false;
+    holdTimer = setTimeout(() => {
+      holdActive = true;
+      if (tipo === "vida") {
+        // vibrar e tocar som ao segurar a barra (independente de aumento/diminuição)
+        somDano.currentTime = 0;
+        somDano.play().catch(()=>{});
+        tentarVibrar(VIB_DANO);
+      } else {
+        tentarVibrar(VIB_SANIDADE);
+      }
+    }, 300);
+  }
+
+  function cancelBarHold() {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    holdActive = false;
+  }
+
   function calcValor(clientX, max) {
     const rect = containerEl.getBoundingClientRect();
     let x = clientX - rect.left;
@@ -175,7 +201,9 @@ function setupBarDrag(containerEl, tipo) {
 
   containerEl.addEventListener("pointerdown", (e) => {
     active = true; activeId = e.pointerId;
-    containerEl.setPointerCapture(activeId);
+    try { containerEl.setPointerCapture(activeId); } catch (err) {}
+    startBarHold();
+
     if (tipo === "vida") {
       const max = Math.max(1, toIntSafe(vidaMaxInput.value, 100));
       const novo = calcValor(e.clientX, max);
@@ -220,6 +248,7 @@ function setupBarDrag(containerEl, tipo) {
     if (!active || activeId !== e.pointerId) return;
     try { containerEl.releasePointerCapture(activeId); } catch (err) {}
     active = false; activeId = null;
+    cancelBarHold();
   }
   containerEl.addEventListener("pointerup", release);
   containerEl.addEventListener("pointercancel", release);
@@ -231,6 +260,7 @@ function setupBarDrag(containerEl, tipo) {
    - máximo 50 caracteres por linha
    - impede quebras de linha (Enter / colar com \n)
    - primeira linha não vem com texto de exemplo
+   - lista reduzida para 8 linhas por padrão
 ========================= */
 const ITEM_CHAR_LIMIT = 50;
 
@@ -337,9 +367,9 @@ function criarLinhaItem(text = "") {
 
 function popularItens(arr) {
   itensListEl.innerHTML = "";
-  const maxLinhas = Math.max(12, arr.length);
+  const maxLinhas = Math.max(8, arr.length);
   for (let i=0;i<maxLinhas;i++) {
-    // agora sem texto de exemplo na itens: usa string vazia por padrão
+    // agora sem texto de exemplo na primeira linha: usa string vazia por padrão
     const raw = arr[i] ?? "";
     const texto = sanitizeTextForItem(raw);
     itensListEl.appendChild(criarLinhaItem(texto));
