@@ -115,9 +115,8 @@ body {
 
 /* ITENS */
 .itens-wrap { margin-top: 40px; }
-/* ALTERAÇÃO SOLICITADA: título ITENS usa fonte Heartless */
 .itens-titulo {
-  font-family: "Heartless";
+  font-family: "Punktype";
   font-size: 44px;
   margin: 8px 0 18px 0;
   letter-spacing: 1px;
