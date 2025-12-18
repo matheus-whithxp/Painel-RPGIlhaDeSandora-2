@@ -92,7 +92,7 @@ function agendarVida(novo, antes) {
       // morte: vibração longa (sem som)
       tentarVibrar(VIB_MORTE);
     } else {
-      // dano normal
+      // dano normal: som + vibração
       somDano.currentTime = 0;
       somDano.play().catch(()=>{});
       tentarVibrar(VIB_DANO);
@@ -135,9 +135,14 @@ function alterarValor(tipo, delta) {
 /* =========================
    HOLD (segurar) usando pointer events
    inicia após 300ms, repete a cada 120ms
+   Nova regra aplicada: ao SEGURAR a barra por >300ms:
+     - vibra (sanidade e vida)
+     - toca som apenas para vida
+   O comportamento de clique mantém-se igual (sem tocar/vibrar imediato).
 ========================= */
 function startHold(id, tipo, delta) {
   stopHold(id);
+  // start repeating after initial hold
   holdTimeouts[id] = setTimeout(() => {
     holdIntervals[id] = setInterval(() => alterarValor(tipo, delta), 120);
   }, 300);
@@ -161,7 +166,7 @@ function bindButton(el, id, tipo, delta) {
 /* =========================
    Drag/touch diretamente na barra (pointer events)
    mapa posição -> valor proporcional
-   + nova regra: ao SEGURAR a barra (hold >300ms) -> vibrar (sanidade/vida) e tocar som (apenas vida)
+   + nova regra: ao SEGURAR a barra (hold detectado) -> vibrar (sanidade/vida) e tocar som (apenas vida)
 ========================= */
 function setupBarDrag(containerEl, tipo) {
   let active = false, activeId = null;
@@ -170,7 +175,7 @@ function setupBarDrag(containerEl, tipo) {
 
   function startBarHold() {
     // inicia timer para considerar "segurar" (300ms)
-    clearTimeout(holdTimer);
+    cancelBarHold();
     holdActive = false;
     holdTimer = setTimeout(() => {
       holdActive = true;
@@ -225,6 +230,10 @@ function setupBarDrag(containerEl, tipo) {
 
   containerEl.addEventListener("pointermove", (e) => {
     if (!active || activeId !== e.pointerId) return;
+    // durante movimento, se ainda não alcançou holdActive, continue hold detection
+    if (!holdActive) {
+      // no-op: we keep the hold timer counting while moving
+    }
     if (tipo === "vida") {
       const max = Math.max(1, toIntSafe(vidaMaxInput.value, 100));
       const novo = calcValor(e.clientX, max);
@@ -256,11 +265,11 @@ function setupBarDrag(containerEl, tipo) {
 
 /* =========================
    ITEMS UI (contenteditable) - cria linhas e salva em localStorage
-   Regras adicionadas:
+   Regras:
    - máximo 50 caracteres por linha
    - impede quebras de linha (Enter / colar com \n)
    - primeira linha não vem com texto de exemplo
-   - lista reduzida para 8 linhas por padrão
+   - lista com 8 linhas por padrão
 ========================= */
 const ITEM_CHAR_LIMIT = 50;
 
@@ -369,7 +378,6 @@ function popularItens(arr) {
   itensListEl.innerHTML = "";
   const maxLinhas = Math.max(8, arr.length);
   for (let i=0;i<maxLinhas;i++) {
-    // agora sem texto de exemplo na primeira linha: usa string vazia por padrão
     const raw = arr[i] ?? "";
     const texto = sanitizeTextForItem(raw);
     itensListEl.appendChild(criarLinhaItem(texto));
