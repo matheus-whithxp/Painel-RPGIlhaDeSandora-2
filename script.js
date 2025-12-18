@@ -133,7 +133,7 @@ function alterarValor(tipo, delta) {
 }
 
 /* =========================
-   HOLD (segurar) using pointer events
+   HOLD (segurar) usando pointer events
    inicia após 300ms, repete a cada 120ms
 ========================= */
 function startHold(id, tipo, delta) {
@@ -227,6 +227,11 @@ function setupBarDrag(containerEl, tipo) {
 
 /* =========================
    ITEMS UI (contenteditable) - cria linhas e salva em localStorage
+   Regras implementadas:
+   - máximo 50 caracteres por linha
+   - impede pular linha / Enter
+   - impede colar com quebras de linha (substitui por espaço) e limita a 50 chars
+   - inicial não preenche com texto exemplo (linhas vazias)
 ========================= */
 function criarLinhaItem(text = "") {
   const li = document.createElement("li");
@@ -238,9 +243,66 @@ function criarLinhaItem(text = "") {
   const div = document.createElement("div");
   div.className = "item-text";
   div.contentEditable = "true";
-  div.innerText = text;
-  // salvar no input
-  div.addEventListener("input", salvarEstadoDebounced);
+  // aplica truncamento imediato se texto fornecido > 50
+  div.innerText = (text || "").slice(0, 50);
+
+  // helper para garantir regras
+  function enforceItemLimits() {
+    // remove quebras de linha
+    let txt = div.innerText.replace(/\r?\n/g, ' ');
+    if (txt.length > 50) txt = txt.slice(0, 50);
+    if (div.innerText !== txt) {
+      div.innerText = txt;
+      // mover caret para o fim
+      try {
+        const range = document.createRange();
+        range.selectNodeContents(div);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } catch (e) {}
+    }
+  }
+
+  // evita Enter / quebra de linha
+  div.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  });
+  // previne inserção de line breaks via antes do input
+  div.addEventListener("beforeinput", (e) => {
+    if (e.inputType === "insertLineBreak") {
+      e.preventDefault();
+    }
+  });
+
+  // colar: filtra quebras e limita tamanho
+  div.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text') || '';
+    let cleaned = pasted.replace(/\r?\n/g, ' ');
+    const allowed = Math.max(0, 50 - div.innerText.length);
+    cleaned = cleaned.slice(0, allowed);
+    // insere texto (execCommand usado por compat)
+    try {
+      document.execCommand('insertText', false, cleaned);
+    } catch (err) {
+      // fallback simples
+      div.innerText = (div.innerText + cleaned).slice(0, 50);
+    }
+    enforceItemLimits();
+    salvarEstadoDebounced();
+  });
+
+  // input: aplica limite e salva debounced
+  div.addEventListener("input", () => {
+    enforceItemLimits();
+    salvarEstadoDebounced();
+  });
+
+  // blur: salva imediatamente
   div.addEventListener("blur", salvarEstado);
 
   li.appendChild(img);
@@ -251,8 +313,8 @@ function criarLinhaItem(text = "") {
 function popularItens(arr) {
   itensListEl.innerHTML = "";
   const maxLinhas = Math.max(12, arr.length);
-  for (let i=0;i<maxLinhas;i++) {
-    const texto = arr[i] ?? (i===0 ? "TEXTO TAMANHO EXEMPLO DOS ITENS." : "");
+  for (let i = 0; i < maxLinhas; i++) {
+    const texto = arr[i] ?? ""; // NÃO preencher com texto de exemplo — linhas vazias
     itensListEl.appendChild(criarLinhaItem(texto));
   }
 }
@@ -333,7 +395,9 @@ sanidadeMaxInput.addEventListener("input", () => {
 
 /* nome edit save */
 nomeEdit.addEventListener("input", salvarEstadoDebounced);
-nomeEdit.addEventListener("blur", salvarEstado);
+nomeEdit.addEventListener("blur", salvarStateImmediate);
+
+function salvarStateImmediate() { salvarEstado(); }
 
 /* carregar inicial */
 carregarEstado();
