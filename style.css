@@ -14,7 +14,11 @@ body {
   -moz-osx-font-smoothing:grayscale;
 }
 
-/* --- Mancha de sangue como detalhe centralizado no fundo --- */
+/* --- Mancha de sangue como detalhe centralizado no fundo ---
+   AUMENTEI um pouco em relação ao valor anterior:
+   - desktop: 40% (era 35%)
+   - mobile: 65% (era 60%)
+*/
 body::before {
   content: "";
   position: fixed;
@@ -22,7 +26,7 @@ body::before {
   background-image: url("Mancha_Sangue_BG.png");
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 35% auto; /* sutil, centralizada */
+  background-size: 40% auto;
   opacity: 0.06;
   pointer-events: none;
   z-index: 0;
@@ -228,4 +232,53 @@ body::before {
 @media (max-width: 1100px) {
   .logo { width:78%; max-width: 700px; }
   .barra-externa { flex-basis: 75%; }
-  .nome-edit { min-width: 420
+  .nome-edit { min-width: 420px; }
+}
+@media (max-width: 900px) {
+  .painel { width:90%; }
+  .barra-externa { flex-basis: 70%; }
+}
+
+/* -----------------------
+   MOBILE ONLY (tel.: <=600px)
+   - itens empilhados verticalmente (6 caixas uma embaixo da outra)
+   - bullets alinhados ao lado de cada caixa
+   - permite quebra de linha (wrap) no texto dos itens
+   - ajustei o tamanho do detalhe de fundo para mobile para 65%
+------------------------*/
+@media (max-width: 600px) {
+  body::before {
+    background-size: 65% auto;
+    opacity: 0.06;
+  }
+
+  .itens-list {
+    display: block;
+    padding: 0;
+    margin: 0;
+  }
+  .itens-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    margin: 8px 0;
+    min-height: auto;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.08);
+  }
+  .itens-list .bullet {
+    width: 20px;
+    height: 20px;
+    margin-top: 4px;
+    flex: 0 0 20px;
+  }
+  .item-text {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: 17px;
+    line-height: 1.3;
+  }
+}
