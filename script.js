@@ -294,13 +294,14 @@ function setupBarDrag(containerEl, tipo) {
 
 /* =========================
    ITEMS UI (contenteditable) - cria linhas e salva em localStorage
-   Regras:
+   REGRAS APLICADAS:
+   - exatamente 8 caixas de texto
+   - mantém bullets nas 8 caixas
    - máximo 50 caracteres por linha
    - impede quebras de linha (Enter / colar com \n)
-   - primeira linha não vem com texto de exemplo
-   - lista com 8 linhas por padrão
-========================= */
+*/
 const ITEM_CHAR_LIMIT = 50;
+const ITENS_FIXED_COUNT = 8;
 
 function placeCaretAtEnd(el) {
   el.focus();
@@ -403,10 +404,10 @@ function criarLinhaItem(text = "") {
   return li;
 }
 
+/* agora sempre popula exatamente 8 linhas */
 function popularItens(arr) {
   itensListEl.innerHTML = "";
-  const maxLinhas = Math.max(8, arr.length);
-  for (let i=0;i<maxLinhas;i++) {
+  for (let i = 0; i < ITENS_FIXED_COUNT; i++) {
     const raw = arr[i] ?? "";
     const texto = sanitizeTextForItem(raw);
     itensListEl.appendChild(criarLinhaItem(texto));
@@ -423,7 +424,11 @@ function salvarEstadoDebounced() {
 }
 
 function salvarEstado() {
-  const itens = Array.from(itensListEl.querySelectorAll(".item-text")).map(d => sanitizeTextForItem(d.innerText));
+  let itens = Array.from(itensListEl.querySelectorAll(".item-text")).map(d => sanitizeTextForItem(d.innerText));
+  // garantir exatamente 8 itens salvos (truncar ou preencher com "")
+  itens = itens.slice(0, ITENS_FIXED_COUNT);
+  while (itens.length < ITENS_FIXED_COUNT) itens.push("");
+
   const estado = {
     vidaAtual: Number(vidaAtual),
     vidaMax: Number(toIntSafe(vidaMaxInput.value, 100)),
@@ -452,7 +457,10 @@ function carregarEstado() {
     sanidadeMaxInput.value = Number(e.sanidadeMax ?? toIntSafe(sanidadeMaxInput.value,100));
     nomeEdit.innerText = e.nome ?? nomeEdit.innerText;
     // sanitize itens carregados (remove quebras e corta)
-    const itensSanitizados = (e.itens || []).map(i => sanitizeTextForItem(i));
+    let itensSanitizados = (e.itens || []).map(i => sanitizeTextForItem(i));
+    // garantir exatamente 8 itens carregados (truncar ou preencher com "")
+    itensSanitizados = itensSanitizados.slice(0, ITENS_FIXED_COUNT);
+    while (itensSanitizados.length < ITENS_FIXED_COUNT) itensSanitizados.push("");
     popularItens(itensSanitizados);
     atualizarBarraVisual(vidaAtual, vidaMaxInput.value, vidaBarInner, vidaAtualSpan);
     atualizarBarraVisual(sanidadeAtual, sanidadeMaxInput.value, sanidadeBarInner, sanidadeAtualSpan);
