@@ -155,7 +155,8 @@ body {
   border:none;
   background:transparent;
   color:#fff;
-  font-family:"Heartless";
+  /* ALTERAÇÃO SOLICITADA: texto dos itens usa Punktype */
+  font-family:"Punktype";
   font-size:18px;
   line-height:1.2;
   padding: 2px 0;
