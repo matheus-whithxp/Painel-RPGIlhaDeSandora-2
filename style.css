@@ -176,3 +176,26 @@ body {
   .painel { width:90%; }
   .barra-externa { flex-basis: 70%; }
 }
+
+/* -----------------------
+   MOBILE ONLY (tel.: <=600px)
+   - itens empilhados verticalmente (8 caixas uma embaixo da outra)
+   - permite quebra de linha nos textos dos itens para facilitar escrita
+   - alterações aplicam apenas a telas pequenas
+------------------------*/
+@media (max-width: 600px) {
+  .itens-list {
+    flex-direction: column;
+    gap: 10px 0;
+  }
+  .itens-list li {
+    width: 100%;
+    margin: 6px 0;
+  }
+  /* permitir que o texto dos itens quebre em várias linhas no mobile */
+  .item-text {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
