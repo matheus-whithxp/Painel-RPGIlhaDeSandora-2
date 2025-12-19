@@ -22,10 +22,6 @@ let timerSanidade = null;
 const holdTimeouts = {};
 const holdIntervals = {};
 
-/* flags para detectar interações vindas da barra (para evitar vibração duplicada) */
-let barInteractionVida = false;
-let barInteractionSanidade = false;
-
 /* DOM refs (barras) */
 const vidaBarInner = document.getElementById("vida-barra");
 const sanidadeBarInner = document.getElementById("sanidade-barra");
@@ -87,24 +83,20 @@ function atualizarBarraVisual(atual, max, barraInnerEl, spanEl) {
 
 /* =========================
    Agendamento pós-clique (1s) anti-spam
-   * Observação: se a alteração veio da barra (barInteractionX == true)
-     não iremos disparar vibração/som aqui para evitar duplicação.
+   - agora suporta option { fromBar: true } para forçar vibração
+     mesmo se o valor aumentou (usado quando ajuste vem da barra).
 ========================= */
-function agendarVida(novo, antes) {
+function agendarVida(novo, antes, options = {}) {
   clearTimeout(timerVida);
-  if (novo >= antes) return;
+  const fromBar = options.fromBar === true;
+  if (!fromBar && novo >= antes) return;
   timerVida = setTimeout(() => {
-    // se a alteração foi feita pela barra, não tocar/vibrar aqui (já vibraremos ao soltar)
-    if (barInteractionVida) {
-      timerVida = null;
-      return;
-    }
-
+    // se veio da barra ou houve redução, executa vibração/ som conforme regra
     if (antes === 1 && novo === 0) {
       // morte: vibração longa (sem som)
       tentarVibrar(VIB_MORTE);
     } else {
-      // dano normal: som + vibração
+      // dano/ajuste normal: som + vibração
       somDano.currentTime = 0;
       somDano.play().catch(()=>{});
       tentarVibrar(VIB_DANO);
@@ -113,15 +105,11 @@ function agendarVida(novo, antes) {
   }, 1000);
 }
 
-function agendarSanidade(novo, antes) {
+function agendarSanidade(novo, antes, options = {}) {
   clearTimeout(timerSanidade);
-  if (novo >= antes) return;
+  const fromBar = options.fromBar === true;
+  if (!fromBar && novo >= antes) return;
   timerSanidade = setTimeout(() => {
-    // se a alteração foi feita pela barra, não tocar/vibrar aqui (já vibraremos ao soltar)
-    if (barInteractionSanidade) {
-      timerSanidade = null;
-      return;
-    }
     tentarVibrar(VIB_SANIDADE);
     timerSanidade = null;
   }, 1000);
@@ -135,7 +123,7 @@ function alterarValor(tipo, delta) {
     const max = Math.max(1, toIntSafe(vidaMaxInput.value, 100));
     const antes = vidaAtual;
     const novo = Math.max(0, Math.min(vidaAtual + delta, max));
-    if (novo !== antes) agendarVida(novo, antes);
+    if (novo !== antes) agendarVida(novo, antes); // buttons: mantêm regra original (somente se diminuiu)
     vidaAtual = novo;
     atualizarBarraVisual(vidaAtual, max, vidaBarInner, vidaAtualSpan);
   } else {
@@ -180,8 +168,9 @@ function bindButton(el, id, tipo, delta) {
 /* =========================
    Drag/touch diretamente na barra (pointer events)
    mapa posição -> valor proporcional
-   NOVA REGRA: ao SOLTAR a barra (pointerup/pointercancel) -> vibrar.
-   NÃO vibra ao segurar.
+   NOVA REGRA: ao ajustar via barra, a vibração será executada APENAS
+   pelo agendador (agendarVida/agtSanidade) após 1s — independente de aumento/diminuição.
+   NÃO vibra ao segurar nem imediatamente ao soltar.
 ========================= */
 function setupBarDrag(containerEl, tipo) {
   let active = false, activeId = null;
@@ -189,13 +178,11 @@ function setupBarDrag(containerEl, tipo) {
   let holdActive = false;
 
   function startBarHold() {
-    // Mantemos a detecção de hold apenas para lógica interna (se necessário)
     cancelBarHold();
     holdActive = false;
     holdTimer = setTimeout(() => {
       holdActive = true;
-      // NÃO disparar vibração nem som aqui (requisito: vibrar só ao soltar)
-      // portanto esta função fica apenas para sinalizar holdActive=true se necessário
+      // não vibra aqui
     }, 300);
   }
 
@@ -219,23 +206,18 @@ function setupBarDrag(containerEl, tipo) {
     startBarHold();
 
     if (tipo === "vida") {
-      // sinalizamos que esta interação é por barra para evitar vibração duplicada no agendador
-      barInteractionVida = true;
-
       const max = Math.max(1, toIntSafe(vidaMaxInput.value, 100));
       const novo = calcValor(e.clientX, max);
       const antes = vidaAtual;
-      if (novo !== antes) agendarVida(novo, antes);
+      if (novo !== antes) agendarVida(novo, antes, { fromBar: true }); // força agendamento mesmo se aumentou
       vidaAtual = novo;
       atualizarBarraVisual(vidaAtual, max, vidaBarInner, vidaAtualSpan);
       salvarEstado();
     } else {
-      barInteractionSanidade = true;
-
       const max = Math.max(1, toIntSafe(sanidadeMaxInput.value, 100));
       const novo = calcValor(e.clientX, max);
       const antes = sanidadeAtual;
-      if (novo !== antes) agendarSanidade(novo, antes);
+      if (novo !== antes) agendarSanidade(novo, antes, { fromBar: true });
       sanidadeAtual = novo;
       atualizarBarraVisual(sanidadeAtual, max, sanidadeBarInner, sanidadeAtualSpan);
       salvarEstado();
@@ -244,15 +226,15 @@ function setupBarDrag(containerEl, tipo) {
 
   containerEl.addEventListener("pointermove", (e) => {
     if (!active || activeId !== e.pointerId) return;
-    // durante movimento, se ainda não alcançou holdActive, continue hold detection
+    // holdActive apenas indica que o user está segurando por >300ms (mas não disparamos vibração aqui)
     if (!holdActive) {
-      // no-op: hold timer segue rodando
+      // sem-op
     }
     if (tipo === "vida") {
       const max = Math.max(1, toIntSafe(vidaMaxInput.value, 100));
       const novo = calcValor(e.clientX, max);
       const antes = vidaAtual;
-      if (novo !== antes) agendarVida(novo, antes);
+      if (novo !== antes) agendarVida(novo, antes, { fromBar: true }); // reagenda continuamente; último permanece
       vidaAtual = novo;
       atualizarBarraVisual(vidaAtual, max, vidaBarInner, vidaAtualSpan);
       salvarEstado();
@@ -260,7 +242,7 @@ function setupBarDrag(containerEl, tipo) {
       const max = Math.max(1, toIntSafe(sanidadeMaxInput.value, 100));
       const novo = calcValor(e.clientX, max);
       const antes = sanidadeAtual;
-      if (novo !== antes) agendarSanidade(novo, antes);
+      if (novo !== antes) agendarSanidade(novo, antes, { fromBar: true });
       sanidadeAtual = novo;
       atualizarBarraVisual(sanidadeAtual, max, sanidadeBarInner, sanidadeAtualSpan);
       salvarEstado();
@@ -273,20 +255,7 @@ function setupBarDrag(containerEl, tipo) {
     active = false; activeId = null;
     cancelBarHold();
 
-    // Ao soltar a barra: vibrar (vida ou sanidade) INDEPENDENTE se aumentou ou diminuiu
-    if (tipo === "vida") {
-      // se zerou ao soltar, vibração longa
-      if (vidaAtual === 0) {
-        tentarVibrar(VIB_MORTE);
-      } else {
-        tentarVibrar(VIB_DANO);
-      }
-      // liberar flag de interação por barra após soltar (assim o agendador não disparará vibração depois)
-      barInteractionVida = false;
-    } else {
-      tentarVibrar(VIB_SANIDADE);
-      barInteractionSanidade = false;
-    }
+    // NÃO vibrar aqui; a vibração ocorrerá (se agendada) pelo agendador após 1s.
   }
   containerEl.addEventListener("pointerup", release);
   containerEl.addEventListener("pointercancel", release);
@@ -295,7 +264,7 @@ function setupBarDrag(containerEl, tipo) {
 /* =========================
    ITEMS UI (contenteditable) - cria linhas e salva em localStorage
    REGRAS APLICADAS:
-   - exatamente 8 caixas de texto
+   - exatamente 8 caixas de texto (placeholders no HTML)
    - mantém bullets nas 8 caixas
    - máximo 50 caracteres por linha
    - impede quebras de linha (Enter / colar com \n)
@@ -342,6 +311,7 @@ function sanitizeTextForItem(raw) {
   return t;
 }
 
+/* helper para criar um li caso esteja faltando */
 function criarLinhaItem(text = "") {
   const li = document.createElement("li");
   const img = document.createElement("img");
@@ -404,13 +374,79 @@ function criarLinhaItem(text = "") {
   return li;
 }
 
-/* agora sempre popula exatamente 8 linhas */
+/* agora populamos reaproveitando os 8 placeholders do HTML
+   - se houver menos de 8, cria os faltantes
+   - se houver mais de 8 (por algum motivo), remove os extras
+   - em seguida preenche cada .item-text */
 function popularItens(arr) {
-  itensListEl.innerHTML = "";
+  // garantir que existam exatamente ITENS_FIXED_COUNT li placeholders
+  let currentLis = Array.from(itensListEl.querySelectorAll("li"));
+  // remove extras se tiver mais
+  if (currentLis.length > ITENS_FIXED_COUNT) {
+    for (let i = currentLis.length - 1; i >= ITENS_FIXED_COUNT; i--) {
+      itensListEl.removeChild(currentLis[i]);
+    }
+    currentLis = Array.from(itensListEl.querySelectorAll("li"));
+  }
+  // cria faltantes se houver menos
+  while (currentLis.length < ITENS_FIXED_COUNT) {
+    const newLi = criarLinhaItem("");
+    itensListEl.appendChild(newLi);
+    currentLis.push(newLi);
+  }
+
+  // agora preenche os textos
   for (let i = 0; i < ITENS_FIXED_COUNT; i++) {
     const raw = arr[i] ?? "";
     const texto = sanitizeTextForItem(raw);
-    itensListEl.appendChild(criarLinhaItem(texto));
+    const li = currentLis[i];
+    // encontrar a div.item-text dentro do li (se já existir, reutiliza; se não, cria)
+    let div = li.querySelector(".item-text");
+    if (!div) {
+      div = document.createElement("div");
+      div.className = "item-text";
+      div.contentEditable = "true";
+      li.appendChild(div);
+
+      // adicionar listeners como em criarLinhaItem
+      div.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          return;
+        }
+      });
+      div.addEventListener("paste", (e) => {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text') || "";
+        const clean = sanitizeTextForItem(paste);
+        const current = div.innerText || "";
+        const remaining = ITEM_CHAR_LIMIT - current.length;
+        const toInsert = clean.slice(0, Math.max(0, remaining));
+        if (toInsert.length > 0) {
+          insertTextAtCursor(toInsert);
+        }
+        setTimeout(() => {
+          const final = sanitizeTextForItem(div.innerText);
+          if (final !== div.innerText) {
+            div.innerText = final;
+            placeCaretAtEnd(div);
+          }
+          salvarEstadoDebounced();
+        }, 0);
+      });
+      div.addEventListener("input", () => {
+        const raw2 = div.innerText;
+        const clean2 = sanitizeTextForItem(raw2);
+        if (clean2 !== raw2) {
+          div.innerText = clean2;
+          placeCaretAtEnd(div);
+        }
+        salvarEstadoDebounced();
+      });
+      div.addEventListener("blur", salvarEstado);
+    }
+    // set text (preserva caret by not focusing)
+    if (div.innerText !== texto) div.innerText = texto;
   }
 }
 
