@@ -22,6 +22,10 @@ let timerSanidade = null;
 const holdTimeouts = {};
 const holdIntervals = {};
 
+/* flags para detectar interações vindas da barra (para evitar vibração duplicada) */
+let barInteractionVida = false;
+let barInteractionSanidade = false;
+
 /* DOM refs (barras) */
 const vidaBarInner = document.getElementById("vida-barra");
 const sanidadeBarInner = document.getElementById("sanidade-barra");
@@ -83,11 +87,19 @@ function atualizarBarraVisual(atual, max, barraInnerEl, spanEl) {
 
 /* =========================
    Agendamento pós-clique (1s) anti-spam
+   * Observação: se a alteração veio da barra (barInteractionX == true)
+     não iremos disparar vibração/som aqui para evitar duplicação.
 ========================= */
 function agendarVida(novo, antes) {
   clearTimeout(timerVida);
   if (novo >= antes) return;
   timerVida = setTimeout(() => {
+    // se a alteração foi feita pela barra, não tocar/vibrar aqui (já vibraremos ao soltar)
+    if (barInteractionVida) {
+      timerVida = null;
+      return;
+    }
+
     if (antes === 1 && novo === 0) {
       // morte: vibração longa (sem som)
       tentarVibrar(VIB_MORTE);
@@ -105,6 +117,11 @@ function agendarSanidade(novo, antes) {
   clearTimeout(timerSanidade);
   if (novo >= antes) return;
   timerSanidade = setTimeout(() => {
+    // se a alteração foi feita pela barra, não tocar/vibrar aqui (já vibraremos ao soltar)
+    if (barInteractionSanidade) {
+      timerSanidade = null;
+      return;
+    }
     tentarVibrar(VIB_SANIDADE);
     timerSanidade = null;
   }, 1000);
@@ -135,10 +152,7 @@ function alterarValor(tipo, delta) {
 /* =========================
    HOLD (segurar) usando pointer events
    inicia após 300ms, repete a cada 120ms
-   Nova regra aplicada: ao SEGURAR a barra por >300ms:
-     - vibra (sanidade e vida)
-     - toca som apenas para vida
-   O comportamento de clique mantém-se igual (sem tocar/vibrar imediato).
+   Comportamento dos botões mantido (segurar repete).
 ========================= */
 function startHold(id, tipo, delta) {
   stopHold(id);
@@ -166,7 +180,8 @@ function bindButton(el, id, tipo, delta) {
 /* =========================
    Drag/touch diretamente na barra (pointer events)
    mapa posição -> valor proporcional
-   + nova regra: ao SEGURAR a barra (hold detectado) -> vibrar (sanidade/vida) e tocar som (apenas vida)
+   NOVA REGRA: ao SOLTAR a barra (pointerup/pointercancel) -> vibrar.
+   NÃO vibra ao segurar.
 ========================= */
 function setupBarDrag(containerEl, tipo) {
   let active = false, activeId = null;
@@ -174,19 +189,13 @@ function setupBarDrag(containerEl, tipo) {
   let holdActive = false;
 
   function startBarHold() {
-    // inicia timer para considerar "segurar" (300ms)
+    // Mantemos a detecção de hold apenas para lógica interna (se necessário)
     cancelBarHold();
     holdActive = false;
     holdTimer = setTimeout(() => {
       holdActive = true;
-      if (tipo === "vida") {
-        // vibrar e tocar som ao segurar a barra (independente de aumento/diminuição)
-        somDano.currentTime = 0;
-        somDano.play().catch(()=>{});
-        tentarVibrar(VIB_DANO);
-      } else {
-        tentarVibrar(VIB_SANIDADE);
-      }
+      // NÃO disparar vibração nem som aqui (requisito: vibrar só ao soltar)
+      // portanto esta função fica apenas para sinalizar holdActive=true se necessário
     }, 300);
   }
 
@@ -210,6 +219,9 @@ function setupBarDrag(containerEl, tipo) {
     startBarHold();
 
     if (tipo === "vida") {
+      // sinalizamos que esta interação é por barra para evitar vibração duplicada no agendador
+      barInteractionVida = true;
+
       const max = Math.max(1, toIntSafe(vidaMaxInput.value, 100));
       const novo = calcValor(e.clientX, max);
       const antes = vidaAtual;
@@ -218,6 +230,8 @@ function setupBarDrag(containerEl, tipo) {
       atualizarBarraVisual(vidaAtual, max, vidaBarInner, vidaAtualSpan);
       salvarEstado();
     } else {
+      barInteractionSanidade = true;
+
       const max = Math.max(1, toIntSafe(sanidadeMaxInput.value, 100));
       const novo = calcValor(e.clientX, max);
       const antes = sanidadeAtual;
@@ -232,7 +246,7 @@ function setupBarDrag(containerEl, tipo) {
     if (!active || activeId !== e.pointerId) return;
     // durante movimento, se ainda não alcançou holdActive, continue hold detection
     if (!holdActive) {
-      // no-op: we keep the hold timer counting while moving
+      // no-op: hold timer segue rodando
     }
     if (tipo === "vida") {
       const max = Math.max(1, toIntSafe(vidaMaxInput.value, 100));
@@ -258,6 +272,21 @@ function setupBarDrag(containerEl, tipo) {
     try { containerEl.releasePointerCapture(activeId); } catch (err) {}
     active = false; activeId = null;
     cancelBarHold();
+
+    // Ao soltar a barra: vibrar (vida ou sanidade) INDEPENDENTE se aumentou ou diminuiu
+    if (tipo === "vida") {
+      // se zerou ao soltar, vibração longa
+      if (vidaAtual === 0) {
+        tentarVibrar(VIB_MORTE);
+      } else {
+        tentarVibrar(VIB_DANO);
+      }
+      // liberar flag de interação por barra após soltar (assim o agendador não disparará vibração depois)
+      barInteractionVida = false;
+    } else {
+      tentarVibrar(VIB_SANIDADE);
+      barInteractionSanidade = false;
+    }
   }
   containerEl.addEventListener("pointerup", release);
   containerEl.addEventListener("pointercancel", release);
