@@ -264,13 +264,13 @@ function setupBarDrag(containerEl, tipo) {
 /* =========================
    ITEMS UI (contenteditable) - cria linhas e salva em localStorage
    REGRAS APLICADAS:
-   - exatamente 8 caixas de texto (placeholders no HTML)
-   - mantém bullets nas 8 caixas
+   - exatamente 6 caixas de texto (placeholders no HTML)
+   - mantém bullets nas 6 caixas
    - máximo 50 caracteres por linha
    - impede quebras de linha (Enter / colar com \n)
 */
 const ITEM_CHAR_LIMIT = 50;
-const ITENS_FIXED_COUNT = 8;
+const ITENS_FIXED_COUNT = 6;
 
 function placeCaretAtEnd(el) {
   el.focus();
@@ -374,9 +374,9 @@ function criarLinhaItem(text = "") {
   return li;
 }
 
-/* agora populamos reaproveitando os 8 placeholders do HTML
-   - se houver menos de 8, cria os faltantes
-   - se houver mais de 8 (por algum motivo), remove os extras
+/* agora populamos reaproveitando os placeholders do HTML
+   - se houver menos de 6, cria os faltantes
+   - se houver mais de 6 (por algum motivo), remove os extras
    - em seguida preenche cada .item-text */
 function popularItens(arr) {
   // garantir que existam exatamente ITENS_FIXED_COUNT li placeholders
@@ -461,7 +461,7 @@ function salvarEstadoDebounced() {
 
 function salvarEstado() {
   let itens = Array.from(itensListEl.querySelectorAll(".item-text")).map(d => sanitizeTextForItem(d.innerText));
-  // garantir exatamente 8 itens salvos (truncar ou preencher com "")
+  // garantir exatamente 6 itens salvos (truncar ou preencher com "")
   itens = itens.slice(0, ITENS_FIXED_COUNT);
   while (itens.length < ITENS_FIXED_COUNT) itens.push("");
 
@@ -494,7 +494,7 @@ function carregarEstado() {
     nomeEdit.innerText = e.nome ?? nomeEdit.innerText;
     // sanitize itens carregados (remove quebras e corta)
     let itensSanitizados = (e.itens || []).map(i => sanitizeTextForItem(i));
-    // garantir exatamente 8 itens carregados (truncar ou preencher com "")
+    // garantir exatamente 6 itens carregados (truncar ou preencher com "")
     itensSanitizados = itensSanitizados.slice(0, ITENS_FIXED_COUNT);
     while (itensSanitizados.length < ITENS_FIXED_COUNT) itensSanitizados.push("");
     popularItens(itensSanitizados);
