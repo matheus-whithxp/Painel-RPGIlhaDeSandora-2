@@ -130,7 +130,7 @@ body {
 }
 
 /* lista com bullets como imagem, texto editável ao lado
-   - organizamos em 4 colunas (até 8 itens) para ficar igual ao mockup */
+   - fixamos em 4 colunas com exatamente 8 itens */
 .itens-list {
   list-style: none;
   padding: 0;
@@ -155,7 +155,7 @@ body {
   border:none;
   background:transparent;
   color:#fff;
-  /* ALTERAÇÃO SOLICITADA: texto dos itens usa Punktype */
+  /* texto dos itens usa Punktype */
   font-family:"Punktype";
   font-size:18px;
   line-height:1.2;
