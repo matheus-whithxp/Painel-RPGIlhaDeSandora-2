@@ -14,7 +14,7 @@ body {
   -moz-osx-font-smoothing:grayscale;
 }
 
-/* --- Mancha de sangue como detalhe centralizado no fundo --- */
+/* Mancha de sangue como detalhe centralizado no fundo */
 body::before {
   content: "";
   position: fixed;
@@ -45,8 +45,7 @@ body::before {
   margin: 12px auto 60px auto;
 }
 
-/* NOME - rótulo em Heartless (branco) e campo editável ao lado */
-/* tamanho ajustado para igualar ao título ITENS (40px) */
+/* NOME */
 .ficha-top { margin: 22px 0 36px 0; display:flex; align-items:center; gap:18px; }
 .label-nome { display:flex; align-items:center; gap:14px; }
 .label { font-family:"Heartless"; font-size:40px; color:#ffffff; opacity:0.95; letter-spacing:1px; }
@@ -74,7 +73,7 @@ body::before {
 /* linha: barra + controles à direita */
 .linha { display:flex; align-items:center; gap:20px; }
 
-/* barra externa - mais larga e centralizada visualmente */
+/* barra externa */
 .barra-externa {
   position: relative;
   flex: 0 0 78%;
@@ -97,7 +96,7 @@ body::before {
 .barra-interna.vida { background: #9b1c1c; }
 .barra-interna.sanidade { background: #3c458b; }
 
-/* texto sobre a barra (número central e input do max) */
+/* texto sobre a barra */
 .barra-texto {
   position:absolute;
   inset:0;
@@ -123,7 +122,7 @@ body::before {
 /* separador da barra (imagem) */
 .separador { height:36px; }
 
-/* controles (+ -) alinhados à direita (visuais grandes como no mockup) */
+/* controles (+ -) */
 .controles { display:flex; gap:18px; margin-left:12px; align-items:center; }
 .btn {
   background:none; border:none; color:#fff; font-size:46px; cursor:pointer;
@@ -139,7 +138,7 @@ body::before {
 .texto-zerado { opacity:0.3; color:#000 !important; }
 .separador-zerado { filter:grayscale(100%) brightness(0) contrast(100%); opacity:0.3; }
 
-/* ITENS - título e lista em layout */
+/* ITENS */
 .itens-wrap { margin-top: 40px; }
 .itens-titulo {
   font-family: "Heartless";
@@ -157,15 +156,14 @@ body::before {
   margin-left: 6px;
 }
 
-/* lista com bullets como imagem, texto editável ao lado
-   DESKTOP: 3 colunas x 2 linhas (6 itens) */
+/* CONFIGURAÇÃO PADRÃO DA LISTA (flex wrap). As especificidades desktop/mobile são definidas abaixo. */
 .itens-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 24px; /* vertical gap 12px, horizontal gap 24px */
+  gap: 12px 24px; /* vertical gap / horizontal gap */
   align-items: flex-start;
   justify-content: flex-start;
 }
@@ -175,11 +173,9 @@ body::before {
   gap:12px;
   margin: 6px 0;
   min-height: 28px;
-  /* DESKTOP: 3 colunas */
-  width: calc(33.333% - 24px);
   box-sizing: border-box;
-  padding-right: 0;
 }
+/* bullet e texto */
 .itens-list .bullet { width:18px; height:18px; display:block; margin-top:6px; flex: 0 0 18px; }
 .item-text {
   flex:1;
@@ -187,7 +183,6 @@ body::before {
   border:none;
   background:transparent;
   color:#fff;
-  /* texto dos itens usa Punktype */
   font-family:"Punktype";
   font-size:18px;
   line-height:1.2;
@@ -198,13 +193,32 @@ body::before {
   text-overflow:ellipsis;
 }
 
-/* responsivo - adapta o desktop design em larguras menores (mantendo identidade) */
+/* =======================
+   DESKTOP: Força 3 colunas x 2 linhas (aplica em telas >= 901px)
+   - calculamos largura subtraindo duas vezes o gap horizontal entre colunas
+   - garante espaçamento consistente, sem quebras indesejadas
+   ======================= */
+@media (min-width: 901px) {
+  :root {
+    --itens-gap-x: 24px; /* horizontal gap entre colunas */
+  }
+  .itens-list {
+    gap: 12px var(--itens-gap-x);
+  }
+  .itens-list li {
+    /* largura = (100% total - (colunas - 1) * gap) / columns */
+    width: calc((100% - (2 * var(--itens-gap-x))) / 3);
+  }
+  /* leve ajuste visual para o texto (mantém ellipsis) */
+  .item-text { font-size: 18px; line-height: 1.2; white-space: nowrap; }
+}
+
+/* responsivo - adapta o desktop design em larguras menores */
 @media (max-width: 1100px) {
   .logo { width:78%; max-width: 700px; }
   .barra-externa { flex-basis: 75%; }
   .nome-edit { min-width: 420px; }
 }
-/* tablet / smaller desktop: keep 3 columns until mobile breakpoint */
 @media (max-width: 900px) {
   .painel { width:90%; }
   .barra-externa { flex-basis: 70%; }
@@ -217,21 +231,13 @@ body::before {
    - permite quebra de linha (wrap) no texto dos itens
 ------------------------*/
 @media (max-width: 600px) {
-  /* ajustar tamanho do detalhe de fundo no mobile */
-  body::before {
-    background-size: 80% auto;
-    opacity: 0.08;
-  }
+  body::before { background-size: 80% auto; opacity: 0.08; }
 
-  /* Força lista a comportar-se como bloco vertical */
   .itens-list {
     display: block;
     padding: 0;
     margin: 0;
   }
-
-  /* Cada li passa a ocupar 100% e a apresentar bullet + texto numa linha,
-     empilhando verticalmente por causa do display:block no parent */
   .itens-list li {
     display: flex;
     align-items: flex-start;
@@ -243,17 +249,12 @@ body::before {
     border-radius: 8px;
     background: rgba(0,0,0,0.08);
   }
-
-  /* Bullet: leve aumento para toque e alinhamento vertical */
   .itens-list .bullet {
     width: 20px;
     height: 20px;
     margin-top: 4px;
     flex: 0 0 20px;
   }
-
-  /* Texto: permite quebra/empacotamento, permite múltiplas linhas,
-     mantém a fonte Punktype e boa legibilidade */
   .item-text {
     white-space: normal;
     overflow: visible;
